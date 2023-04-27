@@ -117,6 +117,22 @@ int calculateHeight(node<T>* root){
 	return std::max(lVal, rVal) + 1;
 }
 
+template<typename T>
+node<T>* cleanNode(node<T>*& root) {
+	if (!root) return nullptr;
+
+	if (root->left)
+		root->left = cleanNode(root->left);
+	if (root->right)
+		root->right = cleanNode(root->right);
+
+	if (!root->left && !root->right) {
+		delete root;
+		return nullptr;
+	}
+	return root;
+}
+
 // <---------------------------------------------------------->
 
 
@@ -124,6 +140,7 @@ template<typename T>
 class BST{
 public:
 	BST() : root(nullptr) {};
+	~BST();
 	node<T>* search(T);
 	node<T>* remove(T);
 	T minValue();
@@ -140,6 +157,11 @@ private:
 	node<T>* root;
 };
 
+template<typename T>
+inline BST<T>::~BST()
+{
+	root = cleanNode(root);
+}
 
 template<typename T>
 inline node<T>* BST<T>::search(T value)
