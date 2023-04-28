@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <stack>
+#include <queue>
 
 template<typename T>
 struct node {
@@ -18,6 +19,7 @@ private:
 	node<T>* root = nullptr;
 public:
 	BST() = default;
+	~BST();
 	node<T>* search(T value);
 	node<T>* predecessor(T);
 	node<T>* inOrderSucc(T);
@@ -27,9 +29,15 @@ public:
 	void preOrder();
 	void inOrder();
 	void insert(T);
+	void remove(T);
+	void clean();
 	int getHeight();
 };
 
+template<typename T>
+BST<T>::~BST() {
+	clean();
+}
 
 template<typename T>
 node<T>* BST<T>::search(T value) {
@@ -55,7 +63,7 @@ node<T>* BST<T>::minValue()
 }
 
 template<typename T>
-inline node<T>* BST<T>::maxValue()
+node<T>* BST<T>::maxValue()
 {
 	node<T>* current = root;
 	while (current->right)
@@ -64,14 +72,14 @@ inline node<T>* BST<T>::maxValue()
 }
 
 template<typename T>
-inline node<T>* BST<T>::inOrderSucc(T value)
+node<T>* BST<T>::inOrderSucc(T value)
 {
 	auto res = search(value);
 	return res ? res->left : nullptr;
 }
 
 template<typename T>
-inline node<T>* BST<T>::predecessor(T value)
+node<T>* BST<T>::predecessor(T value)
 {
 	auto res = search(value);
 	return res ? res->right : nullptr;
@@ -109,10 +117,124 @@ void BST<T>::insert(T value) {
 	}
 
 }
-// not finished
+
+template<typename T>
+void BST<T>::remove(T value) {
+	if (!root) return;
+	node<T>* current = root;
+	node<T>* parent = nullptr;
+
+	while (current && current->data != value) {
+		parent = current;
+		if (current->data > value)
+			current = current->left;
+		else if (current->data < value)
+			current = current->right;
+	}
+
+	if (!current) return;
+
+	if (!current->left && !current->right) {
+		if (parent) {
+			if (parent->left == current)
+				parent->left = nullptr;
+			else
+				parent->right = nullptr;
+		}
+		else {
+			root = nullptr;
+		}
+		delete current;
+		return;
+	}
+
+	if (current->left && current->right) {
+		node<T>* temp = current->right;
+		parent = nullptr;
+
+		while (temp->left) {
+			parent = temp;
+			temp = temp->left;
+		}
+
+		current->data = temp->data;
+
+		if (parent) {
+			if (parent->left == temp)
+				parent->left = nullptr;
+			else
+				parent->right = nullptr;
+		}
+		else {
+			current->right = nullptr;
+		}
+		delete temp;
+	}
+	else if (current->left) {
+		if (parent) {
+			if (parent->left == current)
+				parent->left = current->left;
+			else
+				parent->right = current->left;
+		}
+		else {
+			root = current->left;
+		}
+		delete current;
+	}
+	else {
+		if (parent) {
+			if (parent->left == current)
+				parent->left = current->right;
+			else
+				parent->right = current->right;
+		}
+		else {
+			root = current->right;
+		}
+		delete current;
+	}
+}
+
+
 template<typename T>
 void BST<T>::postOrder()
 {
+	if (!root) return ;
+	node<T>* cur = root;
+	node<T>* min = minValue();
+	std::queue<node<T>*> queue, queue2;
+	queue.push(cur);
+	queue2.push(cur);
+	int num = 1;
+
+	while (!queue2.empty()) {
+		int levelSize = num;
+		num = 0;
+		while (levelSize > 0) {
+			cur = queue2.front();
+			queue2.pop();
+			if (cur->left) {
+				queue.push(cur->left);
+				queue2.push(cur->left);
+				num++;
+			}
+			if (cur->right) {
+				queue.push(cur->right);
+				queue2.push(cur->right);
+				num++;
+			}
+			levelSize--;
+		}
+
+	}
+
+	while (!queue.empty())
+	{
+		std::cout << queue.front()->data << ", ";
+		queue.pop();
+	}
+
 
 }
 
@@ -160,41 +282,63 @@ void BST<T>::inOrder() {
 	}
 
 }
-//not finished
+
 template<typename T>
 int BST<T>::getHeight() {
 	if (!root) return 0;
-	int highest = 0;
-	int currCount = 0;
-
+	int hight = 0;
 	node<T>* current = root;
-	std::stack<node<T>*> stack;
+	std::queue<node<T>*> queue;
+	queue.push(root);
 
-	while (current || !stack.empty())
+	while (!queue.empty())
 	{
-		while (current)
-		{
-			stack.push(current);
-			current = current->left;
-			currCount++;
+		int levelSize = queue.size();
+		while (levelSize > 0) {
+			node<T>* Node = queue.front();
+			queue.pop();
+
+			if (Node->left)
+				queue.push(Node->left);
+			if (Node->right)
+				queue.push(Node->right);
+			levelSize--;
 		}
-
-		if (currCount > highest)
-			highest = currCount;
-		current = stack.top();
-
-		stack.pop();
-		current = current->right;
-
+		hight++;
 	}
-	return highest;
+
+	return hight;
 }
 
 
-// finish those 3 and destructor
-//node<T>* remove(T);
-//void postOrder();
-//int getHeight();
+template<typename T>
+void BST<T>::clean()
+{
+	
+	if (!root) return;
+
+	std::queue<node<T>*> queue;
+	queue.push(root);
+
+	while (!queue.empty()) {
+		node<T>* current = queue.front();
+		queue.pop();
+
+		if (current->left) {
+			queue.push(current->left);
+		}
+		if (current->right) {
+			queue.push(current->right);
+		}
+
+		delete current;
+	}
+
+	root = nullptr;
+
+}
+
+
 
 
 #endif
