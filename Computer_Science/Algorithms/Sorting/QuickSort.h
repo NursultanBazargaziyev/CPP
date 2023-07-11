@@ -5,9 +5,18 @@
 // Worst case: O(n^2);
 // Average/best case O(nlogn)
 
+#include <vector>
+#include <iterator>
+#include <iostream>
+#include <algorithm>
+
 template<typename T>
-void printArray(const std::vector& array<T> arr){
-    std::copy(arr.begin(),arr.end(), std::ostream_iterator<T>(cout, ", "));
+int partition(std::vector<T>&, int, int);
+
+
+template<typename T>
+void printArray(const std::vector<T>& arr){
+    std::copy(arr.begin(),arr.end(), std::ostream_iterator<T>(std::cout, ", "));
 }
 
 template<typename T>
